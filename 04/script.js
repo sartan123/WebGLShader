@@ -36,43 +36,31 @@ window.onload = function(){
     gl.clearDepth(1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var model = sphere(64, 64, 1.0, [0.5, 0.5, 0.5, 1.0]);
-    //var model = square();
-
-    var vertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.p), gl.STATIC_DRAW);
-
-    var colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.c), gl.STATIC_DRAW);
-
-    var normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.n), gl.STATIC_DRAW);
-
-    var indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,  indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(model.i), gl.STATIC_DRAW);
-
     var vertexSource = document.getElementById("vs").textContent;
     var fragmentSource = document.getElementById("fs").textContent;
     var programs = getProgram(vertexSource, fragmentSource);
+
+    var model = sphere(64, 64, 1.0, [0.5, 0.5, 0.5, 1.0]);
+    //var model = square();
+
+    var vertexBuffer = create_vbo(model.p);
+    var colorBuffer = create_vbo(model.c);
+    var normalBuffer = create_vbo(model.n);
+    vboList = [vertexBuffer, colorBuffer, normalBuffer];
+
+    var ibo = create_ibo(model.i);
  
-    var attLocation = gl.getAttribLocation(programs, "position");
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.enableVertexAttribArray(attLocation);
-    gl.vertexAttribPointer(attLocation, 3, gl.FLOAT, false, 0, 0);
+    var attL = new Array();
+    attL[0] = gl.getAttribLocation(programs, "position");
+    attL[1] = gl.getAttribLocation(programs, "color");
+    attL[2] = gl.getAttribLocation(programs, "normal");
 
-    var attColorLocation = gl.getAttribLocation(programs, "color");
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.enableVertexAttribArray(attColorLocation);
-    gl.vertexAttribPointer(attColorLocation, 4, gl.FLOAT, false, 0, 0);
+    var attS = new Array();
+    attS[0] = 3;
+    attS[1] = 4;
+    attS[2] = 3;
 
-    var attNormalLocation = gl.getAttribLocation(programs, "normal");
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.enableVertexAttribArray(attNormalLocation);
-    gl.vertexAttribPointer(attNormalLocation, 3, gl.FLOAT, false, 0, 0);
+    set_attribute(vboList, attL, attS);
 
     var uniMVPLocation = gl.getUniformLocation(programs, "mvpMatrix");
     var uniLightLocation = gl.getUniformLocation(programs, "LightDir");
@@ -135,5 +123,28 @@ window.onload = function(){
         gl.useProgram(programs);
 
         return programs;
+    }
+
+    function create_vbo(data){
+        var vbo = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        return vbo;
+    }
+
+    function create_ibo(data){
+        var ibo = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,  ibo);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Int16Array(data), gl.STATIC_DRAW);
+        return ibo;
+    }
+
+    function set_attribute(vbo, attL, attS){
+		for(var i in vbo){
+			gl.bindBuffer(gl.ARRAY_BUFFER, vbo[i]);
+			gl.enableVertexAttribArray(attL[i]);
+			gl.vertexAttribPointer(attL[i], attS[i], gl.FLOAT, false, 0, 0);
+		}
     }
 }
