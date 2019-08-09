@@ -1,5 +1,7 @@
 # WebGL Shader
 
+## This is a sample program for WebGL Shader.
+
 ### 02: Triangle polygon
 ### 03: Square
 ### 04: Sphere with lighting
