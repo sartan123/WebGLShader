@@ -11,26 +11,15 @@ window.onload = function(){
     }
 
     var mat = new matIV();
-    var mMatrix = mat.identity(mat.create());
     var vMatrix = mat.identity(mat.create());
     var pMatrix = mat.identity(mat.create());
-    var vpMatrix = mat.identity(mat.create());
-    var mvpMatrix = mat.identity(mat.create());
-    var invMatrix = mat.identity(mat.create());
 
-    var cameraPosition = [0.0, 0.0, 4.0];
-    var cameraPoint = [0.0, 0.0, 0.0];
+    var cameraPosition = [0.0, 0.0, 0.0];
+    var cameraPoint = [1.0, 0.0, 1.0];
     var cameraUp = [0.0, 1.0, 0.0];
     mat.lookAt(cameraPosition, cameraPoint, cameraUp, vMatrix);
 
-    var fovy = 45.0;
-    var aspect = c.width / c.height;
-    var near = 0.1;
-    var far = 100.0;
-    mat.perspective(fovy, aspect, near, far, pMatrix);
-
-    mat.multiply(pMatrix, vMatrix, vpMatrix);
-    mat.multiply(vpMatrix, mMatrix, mvpMatrix);
+    mat.identity(pMatrix);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
@@ -74,8 +63,12 @@ window.onload = function(){
     gl.enableVertexAttribArray(attNormalLocation);
     gl.vertexAttribPointer(attNormalLocation, 3, gl.FLOAT, false, 0, 0);
 
-    var uniLocation = gl.getUniformLocation(programs, "mvpMatrix");
+    var uniViewLocation = gl.getUniformLocation(programs, "vMatrix");
+    var uniProjLocation = gl.getUniformLocation(programs, "pMatrix");
     var uniResolution = gl.getUniformLocation(programs, "resolution");
+    var uniRayPosition = gl.getUniformLocation(programs, "rayPosition");
+    gl.uniformMatrix4fv(uniProjLocation, false, pMatrix);
+    gl.uniform2fv(uniResolution, [c.width, c.height]);
 
     var count = 0;
 
@@ -87,16 +80,11 @@ window.onload = function(){
         
         gl.clearColor(0.2, 0.5, 0.7, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-
-        mat.identity(mMatrix);
-        //mat.rotate(mMatrix, radians, [0, 1, 0], mMatrix);
-        mat.multiply(pMatrix, vMatrix, vpMatrix);
-        mat.multiply(vpMatrix, mMatrix, mvpMatrix);
-
-        mat.inverse(mMatrix, invMatrix);
         
-        gl.uniformMatrix4fv(uniLocation, false, mvpMatrix);
-        gl.uniform2fv(uniResolution, [c.width, c.height]);
+        mat.lookAt(cameraPosition, [Math.sin(radians), 0.0, -Math.cos(radians)], cameraUp, vMatrix);
+        
+        gl.uniformMatrix4fv(uniViewLocation, false, vMatrix);
+        gl.uniform3fv(uniRayPosition, [Math.sin(radians) * 5.0, 2.0, Math.cos(radians) * 5.0]);
 
         gl.drawElements(gl.TRIANGLES, model.i.length, gl.UNSIGNED_SHORT, 0);
         gl.flush();

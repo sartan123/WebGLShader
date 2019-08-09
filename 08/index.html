@@ -8,7 +8,6 @@
             attribute vec3 position;
             attribute vec4 color;
             attribute vec3 normal;
-            uniform mat4 mvpMatrix;
             varying vec4 vColor;
             varying vec3 vNormal;
             void main(){
@@ -20,6 +19,9 @@
         <script id="fs" type="x-shader/x-fragment">
             precision mediump float;
             uniform vec2 resolution;
+            uniform vec3 rayPosition;
+            uniform mat4 vMatrix;
+            uniform mat4 pMatrix;
             varying vec4 vColor;
             varying vec3 vNormal;
             struct Ray{
@@ -87,9 +89,8 @@
                 vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
 
                 Ray ray;
-                ray.position = vec3(0.0, 0.0, 6.0);
-                ray.direction = normalize(vec3(p.x, p.y, -1.0));
-
+                ray.position = rayPosition;
+                ray.direction = normalize((vMatrix * pMatrix * vec4(p.x , p.y, -1.0, 1.0)).xyz);
 
                 Sphere sphere;
                 sphere.position = vec3(-4.0, 0.0, -1.0);
